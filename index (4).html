@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>RADIO &amp; MUSIC PLAYER</title>
+  <style>
+    :root {
+      --bg-base: #07090f;
+      --bg-panel: #0f131f;
+      --bg-card: #161c2e;
+      --bg-card-hover: #1e263d;
+      --accent: #00e5ff;
+      --accent-2: #7c4dff;
+      --accent-glow: rgba(0, 229, 255, 0.35);
+      --text-main: #f4f7fb;
+      --text-muted: #8b96b0;
+      --border: rgba(255, 255, 255, 0.08);
+      --danger: #ff4d6d;
+      --success: #00e676;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: radial-gradient(circle at 50% 0%, #131b31 0%, var(--bg-base) 65%);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding-bottom: 130px;
+      overflow-x: hidden;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(7, 9, 15, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 16px;
+    }
+
+    .header-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: 0.5px;
+    }
+
+    .brand-badge {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      display: grid;
+      place-items: center;
+      color: #050811;
+      font-weight: 900;
+      box-shadow: 0 0 18px var(--accent-glow);
+    }
+
+    .status-pill {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--text-muted);
+    }
+
+    .status-pill.live .status-dot {
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success);
+      animation: pulse 1.5s infinite;
+    }
+
+    .status-pill.live {
+      color: #fff;
+      background: rgba(0, 230, 118, 0.14);
+      border: 1px solid rgba(0, 230, 118, 0.3);
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.35); opacity: 0.6; }
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      background: var(--bg-panel);
+      padding: 4px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.85rem;
+      padding: 9px 8px;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, rgba(0, 229, 255, 0.18), rgba(124, 77, 255, 0.22));
+      color: #fff;
+      box-shadow: inset 0 0 0 1px rgba(0, 229, 255, 0.35);
+    }
+
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 18px 16px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .section-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .section-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .refresh-btn {
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--accent);
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 7px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: 0.2s;
+    }
+
+    .refresh-btn:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--accent);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 13px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: transform 0.16s ease, background 0.2s ease, border-color 0.2s ease;
+      position: relative;
+    }
+
+    .card:hover {
+      background: var(--bg-card-hover);
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.16);
+    }
+
+    .card.playing {
+      background: linear-gradient(135deg, rgba(0, 229, 255, 0.14), rgba(124, 77, 255, 0.16));
+      border-color: var(--accent);
+      box-shadow: 0 4px 20px rgba(0, 229, 255, 0.15);
+    }
+
+    .card.unavailable {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .card.unavailable:hover {
+      transform: none;
+      background: var(--bg-card);
+      border-color: var(--border);
+    }
+
+    .card-art {
+      width: 50px;
+      height: 50px;
+      border-radius: 11px;
+      background: linear-gradient(135deg, #1f2942, #121726);
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      font-weight: 800;
+      font-size: 0.95rem;
+      color: var(--accent);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      position: relative;
+    }
+
+    .card-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .card-title {
+      font-weight: 700;
+      font-size: 0.92rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 3px;
+    }
+
+    .card-meta {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .fav-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 8px;
+      transition: transform 0.15s, color 0.15s;
+      z-index: 2;
+    }
+
+    .fav-btn:hover {
+      transform: scale(1.15);
+    }
+
+    .fav-btn.active {
+      color: #ff4d6d;
+    }
+
+    .eq {
+      display: inline-flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 14px;
+    }
+
+    .eq span {
+      width: 3px;
+      background: var(--accent);
+      border-radius: 2px;
+      animation: eqAnim 0.8s infinite ease-in-out;
+    }
+
+    .eq span:nth-child(2) { animation-delay: 0.2s; }
+    .eq span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes eqAnim {
+      0%, 100% { height: 4px; }
+      50% { height: 14px; }
+    }
+
+    .empty-box {
+      text-align: center;
+      padding: 40px 20px;
+      background: var(--bg-panel);
+      border: 1px dashed var(--border);
+      border-radius: 16px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .player-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      background: rgba(12, 16, 28, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(0, 229, 255, 0.22);
+      padding: 10px 16px 14px;
+      box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.6);
+    }
+
+    .player-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .progress-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .progress-row.hidden {
+      display: none;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: rgba(255, 255, 255, 0.14);
+      height: 5px;
+      border-radius: 999px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    #seekBar {
+      flex: 1;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent-glow);
+      cursor: pointer;
+    }
+
+    .controls-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .now-playing {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .np-thumb {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: var(--bg-card);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      color: var(--accent);
+      overflow: hidden;
+      flex-shrink: 0;
+      border: 1px solid var(--border);
+    }
+
+    .np-text {
+      min-width: 0;
+    }
+
+    .np-title {
+      font-weight: 700;
+      font-size: 0.9rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .np-sub {
+      font-size: 0.75rem;
+      color: var(--accent);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .buttons-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ctrl-btn {
+      border: none;
+      background: rgba(255, 255, 255, 0.07);
+      color: #fff;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: 0.15s;
+    }
+
+    .ctrl-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .ctrl-btn.play-main {
+      width: 46px;
+      height: 46px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #050811;
+      font-size: 1.15rem;
+      font-weight: 800;
+      box-shadow: 0 0 18px var(--accent-glow);
+    }
+
+    .volume-box {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #volBar {
+      width: 75px;
+    }
+
+    @media (max-width: 600px) {
+      .volume-box {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <div class="brand-row">
+        <div class="brand">
+          <div class="brand-badge">▶</div>
+          <span>AUDIO HUB</span>
+        </div>
+        <div class="status-pill" id="statusPill">
+          <span class="status-dot"></span>
+          <span id="statusText">Listo</span>
+        </div>
+      </div>
+
+      <nav class="tabs">
+        <button class="tab-btn active" data-tab="radios">📻 Radios</button>
+        <button class="tab-btn" data-tab="tracks">🎵 Mis Pistas</button>
+        <button class="tab-btn" data-tab="favs">❤️ Favoritos</button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="mainContent"></main>
+
+  <div class="player-bar">
+    <div class="player-inner">
+      <div class="progress-row hidden" id="progressRow">
+        <span id="curTime">0:00</span>
+        <input type="range" id="seekBar" min="0" max="100" value="0" step="0.1" />
+        <span id="durTime">0:00</span>
+      </div>
+
+      <div class="controls-row">
+        <div class="now-playing">
+          <div class="np-thumb" id="npThumb">🎵</div>
+          <div class="np-text">
+            <div class="np-title" id="npTitle">Selecciona una radio o pista</div>
+            <div class="np-sub" id="npSub">En espera</div>
+          </div>
+        </div>
+
+        <div class="buttons-group">
+          <button class="ctrl-btn" id="prevBtn" title="Anterior">⏮</button>
+          <button class="ctrl-btn play-main" id="playPauseBtn" title="Reproducir / Pausar">▶</button>
+          <button class="ctrl-btn" id="nextBtn" title="Siguiente">⏭</button>
+        </div>
+
+        <div class="volume-box">
+          <span style="font-size:0.9rem">🔊</span>
+          <input type="range" id="volBar" min="0" max="1" step="0.02" value="0.9" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <audio id="audioEl" preload="none"></audio>
+
+  <script>
+    const RADIOS = [
+      { id: 'r1', name: 'Los 40 Principales', genre: 'Pop / Éxitos', url: 'https://playerservices.streamtheworld.com/api/livestream-redirect/LOS40.mp3', logo: '40' },
+      { id: 'r2', name: 'Cadena 100', genre: 'Pop / Variedad', url: 'https://cadena100-cope-rrcast.flumotion.com/cope/cadena100-low.mp3', logo: 'C100' },
+      { id: 'r3', name: 'Europa FM', genre: 'Pop / Dance', url: 'https://icecast-streaming.nice264.com/europafm', logo: 'EFM' },
+      { id: 'r4', name: 'Kiss FM', genre: 'Clásicos / Pop', url: 'https://kissfm.kissfmradio.cires21.com/kissfm.mp3', logo: 'KISS' },
+      { id: 'r5', name: 'Rock FM', genre: 'Rock Clásico', url: 'https://rockfm-cope-rrcast.flumotion.com/cope/rockfm-low.mp3', logo: 'ROCK' },
+      { id: 'r6', name: 'Loca FM', genre: 'Electrónica / Dance', url: 'https://s2.webradio-hosting.com/proxy/locafm/stream', logo: 'LOCA' },
+      { id: 'r7', name: 'Radio Marca', genre: 'Deportes', url: 'https://playerservices.streamtheworld.com/api/livestream-redirect/RADIOMARCA_NACIONAL.mp3', logo: 'RM' },
+      { id: 'r8', name: 'RNE Radio 3', genre: 'Indie / Cultura', url: 'https://rtvelivestream.akamaized.net/rtvesec/rne/rne_r3_main.m3u8', logo: 'R3' }
+    ];
+
+    const MAX_TRACKS = 30;
+
+    const MY_TRACKS = Array.from({ length: MAX_TRACKS }, (_, i) => {
+      const num = i + 1;
+      const baseNames = [
+        `pista${num}`,
+        `pista ${num}`,
+        `Pista${num}`,
+        `Pista ${num}`,
+        `PISTA${num}`,
+        `PISTA ${num}`
+      ];
+      const exts = ['.mp3.m4a', '.m4a', '.mp3', '.MP3', '.M4A'];
+      const folders = ['', 'pistas/', 'musica/', 'audio/'];
+
+      const files = [];
+      for (const folder of folders) {
+        for (const base of baseNames) {
+          for (const ext of exts) {
+            files.push(`${folder}${base}${ext}`);
+          }
+        }
+      }
+
+      return {
+        id: `track_${num}`,
+        num,
+        title: `Pista ${num}`,
+        files,
+        resolvedFile: null,
+        available: null
+      };
+    });
+
+    let activeTab = 'radios';
+    let favorites = JSON.parse(localStorage.getItem('audiohub_favs') || '[]');
+    let currentItem = null;
+    let isPlaying = false;
+    let isScanning = false;
+
+    const audio = document.getElementById('audioEl');
+    const mainContent = document.getElementById('mainContent');
+    const statusPill = document.getElementById('statusPill');
+    const statusText = document.getElementById('statusText');
+    const npTitle = document.getElementById('npTitle');
+    const npSub = document.getElementById('npSub');
+    const npThumb = document.getElementById('npThumb');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const progressRow = document.getElementById('progressRow');
+    const seekBar = document.getElementById('seekBar');
+    const curTime = document.getElementById('curTime');
+    const durTime = document.getElementById('durTime');
+    const volBar = document.getElementById('volBar');
+
+    function setStatus(text, live = false) {
+      statusText.textContent = text;
+      statusPill.classList.toggle('live', live);
+    }
+
+    function formatTime(sec) {
+      if (!isFinite(sec) || sec < 0) return '0:00';
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return `${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    function toggleFav(id, e) {
+      if (e) e.stopPropagation();
+      if (favorites.includes(id)) {
+        favorites = favorites.filter(f => f !== id);
+      } else {
+        favorites.push(id);
+      }
+      localStorage.setItem('audiohub_favs', JSON.stringify(favorites));
+      render();
+    }
+
+    async function checkTrackExists(tr) {
+      for (const file of tr.files) {
+        try {
+          const res = await fetch(encodeURI(file), {
+            method: 'GET',
+            headers: { 'Range': 'bytes=0-1' }
+          });
+          if (res.ok || res.status === 206) {
+            tr.resolvedFile = file;
+            tr.available = true;
+            return true;
+          }
+        } catch (err) {}
+      }
+      tr.resolvedFile = null;
+      tr.available = false;
+      return false;
+    }
+
+    async function scanTracks() {
+      if (isScanning) return;
+      isScanning = true;
+      if (activeTab === 'tracks') render();
+
+      for (let i = 0; i < MY_TRACKS.length; i += 5) {
+        const batch = MY_TRACKS.slice(i, i + 5);
+        await Promise.all(batch.map(tr => checkTrackExists(tr)));
+        if (activeTab === 'tracks' || activeTab === 'favs') render();
+      }
+
+      isScanning = false;
+      if (activeTab === 'tracks' || activeTab === 'favs') render();
+    }
+
+    function playRadio(radio) {
+      currentItem = { type: 'radio', data: radio };
+      progressRow.classList.add('hidden');
+      npTitle.textContent = radio.name;
+      npSub.textContent = 'Conectando radio en vivo...';
+      npThumb.textContent = radio.logo;
+      setStatus('Conectando...', false);
+
+      audio.src = radio.url;
+      audio.load();
+      audio.play().then(() => {
+        isPlaying = true;
+        playPauseBtn.textContent = '⏸';
+        npSub.textContent = `EN VIVO • ${radio.genre}`;
+        setStatus('En Vivo', true);
+        render();
+      }).catch(() => {
+        isPlaying = false;
+        playPauseBtn.textContent = '▶';
+        npSub.textContent = 'Error al conectar la emisora';
+        setStatus('Error de red', false);
+        render();
+      });
+    }
+
+    function playTrack(tr) {
+      if (!tr.available || !tr.resolvedFile) return;
+      currentItem = { type: 'track', data: tr };
+      progressRow.classList.remove('hidden');
+      seekBar.value = 0;
+      curTime.textContent = '0:00';
+      durTime.textContent = '0:00';
+
+      npTitle.textContent = tr.title;
+      npSub.textContent = tr.resolvedFile;
+      npThumb.textContent = `#${tr.num}`;
+      setStatus('Cargando pista...', false);
+
+      audio.src = encodeURI(tr.resolvedFile);
+      audio.load();
+      audio.play().then(() => {
+        isPlaying = true;
+        playPauseBtn.textContent = '⏸';
+        setStatus('Reproduciendo', true);
+        render();
+      }).catch(() => {
+        isPlaying = false;
+        playPauseBtn.textContent = '▶';
+        npSub.textContent = 'No se pudo reproducir el archivo';
+        setStatus('Error de audio', false);
+        render();
+      });
+    }
+
+    function getPlayableList() {
+      if (!currentItem) return [];
+      if (currentItem.type === 'radio') return RADIOS;
+      return MY_TRACKS.filter(t => t.available);
+    }
+
+    function stepTrack(dir) {
+      const list = getPlayableList();
+      if (!list.length || !currentItem) return;
+      const idx = list.findIndex(item => item.id === currentItem.data.id);
+      const nextIdx = (idx + dir + list.length) % list.length;
+      if (currentItem.type === 'radio') {
+        playRadio(list[nextIdx]);
+      } else {
+        playTrack(list[nextIdx]);
+      }
+    }
+
+    playPauseBtn.addEventListener('click', () => {
+      if (!currentItem) {
+        playRadio(RADIOS[0]);
+        return;
+      }
+      if (audio.paused) {
+        audio.play().then(() => {
+          isPlaying = true;
+          playPauseBtn.textContent = '⏸';
+          setStatus(currentItem.type === 'radio' ? 'En Vivo' : 'Reproduciendo', true);
+          render();
+        });
+      } else {
+        audio.pause();
+        isPlaying = false;
+        playPauseBtn.textContent = '▶';
+        setStatus('Pausado', false);
+        render();
+      }
+    });
+
+    prevBtn.addEventListener('click', () => stepTrack(-1));
+    nextBtn.addEventListener('click', () => stepTrack(1));
+
+    audio.addEventListener('timeupdate', () => {
+      if (currentItem && currentItem.type === 'track' && isFinite(audio.duration)) {
+        seekBar.max = audio.duration;
+        seekBar.value = audio.currentTime;
+        curTime.textContent = formatTime(audio.currentTime);
+        durTime.textContent = formatTime(audio.duration);
+      }
+    });
+
+    audio.addEventListener('ended', () => {
+      if (currentItem && currentItem.type === 'track') {
+        stepTrack(1);
+      }
+    });
+
+    seekBar.addEventListener('input', () => {
+      if (currentItem && currentItem.type === 'track') {
+        audio.currentTime = seekBar.value;
+      }
+    });
+
+    volBar.addEventListener('input', () => {
+      audio.volume = parseFloat(volBar.value);
+    });
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeTab = btn.dataset.tab;
+        render();
+      });
+    });
+
+    function createRadioCard(r) {
+      const playing = currentItem && currentItem.type === 'radio' && currentItem.data.id === r.id && isPlaying;
+      const isFav = favorites.includes(r.id);
+      const card = document.createElement('div');
+      card.className = `card ${playing ? 'playing' : ''}`;
+      card.innerHTML = `
+        <div class="card-art">${playing ? '<div class="eq"><span></span><span></span><span></span></div>' : r.logo}</div>
+        <div class="card-info">
+          <div class="card-title">${r.name}</div>
+          <div class="card-meta">${r.genre}</div>
+        </div>
+        <button class="fav-btn ${isFav ? 'active' : ''}" title="Favorito">${isFav ? '❤️' : '🤍'}</button>
+      `;
+      card.addEventListener('click', () => playRadio(r));
+      card.querySelector('.fav-btn').addEventListener('click', e => toggleFav(r.id, e));
+      return card;
+    }
+
+    function createTrackCard(tr) {
+      const playing = currentItem && currentItem.type === 'track' && currentItem.data.id === tr.id && isPlaying;
+      const isFav = favorites.includes(tr.id);
+      const unavail = tr.available === false;
+      const checking = tr.available === null;
+
+      let statusLabel = 'Buscando archivo...';
+      if (tr.available === true) statusLabel = `Archivo: ${tr.resolvedFile}`;
+      if (tr.available === false) statusLabel = 'Ranura libre (sin archivo)';
+
+      const card = document.createElement('div');
+      card.className = `card ${playing ? 'playing' : ''} ${unavail ? 'unavailable' : ''}`;
+      card.innerHTML = `
+        <div class="card-art">${playing ? '<div class="eq"><span></span><span></span><span></span></div>' : `#${tr.num}`}</div>
+        <div class="card-info">
+          <div class="card-title">${tr.title}</div>
+          <div class="card-meta">${checking ? 'Comprobando...' : statusLabel}</div>
+        </div>
+        <button class="fav-btn ${isFav ? 'active' : ''}" title="Favorito">${isFav ? '❤️' : '🤍'}</button>
+      `;
+      if (tr.available) {
+        card.addEventListener('click', () => playTrack(tr));
+      }
+      card.querySelector('.fav-btn').addEventListener('click', e => toggleFav(tr.id, e));
+      return card;
+    }
+
+    function render() {
+      mainContent.innerHTML = '';
+
+      if (activeTab === 'radios') {
+        const head = document.createElement('div');
+        head.className = 'section-header';
+        head.innerHTML = `
+          <div>
+            <div class="section-title">Emisoras en Directo</div>
+            <div class="section-sub">Toca una emisora para escuchar en streaming</div>
+          </div>
+        `;
+        mainContent.appendChild(head);
+
+        const grid = document.createElement('div');
+        grid.className = 'grid';
+        RADIOS.forEach(r => grid.appendChild(createRadioCard(r)));
+        mainContent.appendChild(grid);
+      }
+
+      if (activeTab === 'tracks') {
+        const foundCount = MY_TRACKS.filter(t => t.available).length;
+        const head = document.createElement('div');
+        head.className = 'section-header';
+        head.innerHTML = `
+          <div>
+            <div class="section-title">Mis Pistas (${foundCount} detectadas)</div>
+            <div class="section-sub">${isScanning ? 'Escaneando archivos en el repositorio...' : 'Detecta pista1.mp3, pista1.m4a, pista 1.mp3.m4a, etc.'}</div>
+          </div>
+          <button class="refresh-btn" id="rescanBtn">🔄 Re-escanear</button>
+        `;
+        mainContent.appendChild(head);
+        head.querySelector('#rescanBtn').addEventListener('click', () => {
+          MY_TRACKS.forEach(t => { t.available = null; t.resolvedFile = null; });
+          scanTracks();
+        });
+
+        const grid = document.createElement('div');
+        grid.className = 'grid';
+        MY_TRACKS.forEach(tr => grid.appendChild(createTrackCard(tr)));
+        mainContent.appendChild(grid);
+      }
+
+      if (activeTab === 'favs') {
+        const head = document.createElement('div');
+        head.className = 'section-header';
+        head.innerHTML = `
+          <div>
+            <div class="section-title">Tus Favoritos</div>
+            <div class="section-sub">Radios y pistas guardadas con corazón</div>
+          </div>
+        `;
+        mainContent.appendChild(head);
+
+        const favRadios = RADIOS.filter(r => favorites.includes(r.id));
+        const favTracks = MY_TRACKS.filter(t => favorites.includes(t.id));
+
+        if (!favRadios.length && !favTracks.length) {
+          const empty = document.createElement('div');
+          empty.className = 'empty-box';
+          empty.textContent = 'Aún no tienes favoritos. Pulsa el corazón 🤍 en cualquier radio o pista.';
+          mainContent.appendChild(empty);
+          return;
+        }
+
+        const grid = document.createElement('div');
+        grid.className = 'grid';
+        favRadios.forEach(r => grid.appendChild(createRadioCard(r)));
+        favTracks.forEach(tr => grid.appendChild(createTrackCard(tr)));
+        mainContent.appendChild(grid);
+      }
+    }
+
+    render();
+    scanTracks();
+  </script>
+</body>
+</html>
